@@ -1,0 +1,42 @@
+name: Build and Deploy to k8s
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- BUILD & PUSH DOCKER IMAGE ---
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./SpeciesNetService
+          file: ./SpeciesNetService/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/speciesnet:latest
+
+      # --- DEPLOY VIA SSH ---
+      - name: Deploy to private k8s host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            echo "Deploying latest image to MicroK8s..."
+            microk8s kubectl set image deployment/speciesnet-deployment speciesnet=ghcr.io/${{ github.repository_owner }}/speciesnet:latest -n trapcam-prod --record
+            microk8s kubectl rollout status deployment/speciesnet-deployment -n trapcam-prod

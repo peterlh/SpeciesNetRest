@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: speciesnet-ingress
+  annotations:
+    # Add custom annotations as needed
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: ${INGRESS_CLASS}
+  tls:
+  - hosts:
+    - ${INGRESS_DOMAIN}
+    secretName: ${TLS_SECRET_NAME}
+  rules:
+  - host: ${INGRESS_DOMAIN}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: speciesnet-service
+            port:
+              number: 8000

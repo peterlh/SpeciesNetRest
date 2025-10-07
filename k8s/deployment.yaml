@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speciesnet-deployment
+  labels:
+    app: speciesnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: speciesnet
+  template:
+    metadata:
+      labels:
+        app: speciesnet
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+      - name: speciesnet
+        image: ghcr.io/OWNER/REPO:latest  # This will be updated by the GitHub Action
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MD_CONFIDENCE_THRESHOLD
+          value: "0.2"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
