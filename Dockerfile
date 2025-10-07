@@ -10,12 +10,16 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# Add build args
+ARG MODEL_DOWNLOAD_URL
+ARG MD_DOWNLOAD_URL
+
 # Copy download script and env file
-COPY download_model.sh .env ./
+COPY download_model.sh ./ 
 RUN chmod +x download_model.sh
 
 # Download model files
-RUN ./download_model.sh
+RUN MODEL_DOWNLOAD_URL=$MODEL_DOWNLOAD_URL MD_DOWNLOAD_URL=$MD_DOWNLOAD_URL ./download_model.sh
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
