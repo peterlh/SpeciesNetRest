@@ -23,8 +23,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: ./SpeciesNetService
-          file: ./SpeciesNetService/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/speciesnet:latest
 
